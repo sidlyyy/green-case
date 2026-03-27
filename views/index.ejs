@@ -1,95 +1,119 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="referrer" content="no-referrer">
     <title>TOXIC BATTLE</title>
     <style>
-        :root { --main: #2ecc71; --dark: #0b0e0f; --panel: #141a1c; --gold: #caab05; }
+        :root { --main: #2ecc71; --dark: #0b0e0f; --card: #141a1c; --gold: #caab05; }
         body { background: var(--dark); color: white; font-family: sans-serif; margin: 0; overflow-x: hidden; }
-        header { background: var(--panel); padding: 15px 50px; display: flex; justify-content: space-between; border-bottom: 2px solid var(--main); }
+        header { background: var(--card); padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--main); position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 24px; font-weight: 900; color: var(--main); text-shadow: 0 0 10px var(--main); cursor: pointer; }
         .feed { display: flex; height: 60px; background: #000; overflow: hidden; gap: 5px; padding: 5px; border-bottom: 1px solid #222; }
-        .f-item { min-width: 50px; background: var(--panel); border-bottom: 2px solid var(--main); box-shadow: 0 0 5px var(--main); }
-        .roulette { width: 100%; height: 160px; background: #0e1213; overflow: hidden; position: relative; margin: 20px 0; }
+        .f-item { min-width: 50px; background: var(--card); border-bottom: 2px solid var(--main); }
+        
+        .xp-bar { width: 100px; height: 5px; background: #222; margin-top: 5px; border-radius: 5px; overflow: hidden; }
+        .xp-fill { height: 100%; background: var(--main); box-shadow: 0 0 10px var(--main); transition: 0.5s; }
+
+        .roulette { width: 100%; height: 160px; background: #0e1213; overflow: hidden; position: relative; margin: 20px 0; border-y: 1px solid #222; }
         .tape { display: flex; transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1); }
-        .item { min-width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; background: var(--panel); margin: 0 5px; border-bottom: 4px solid #333; }
+        .item { min-width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; background: var(--card); margin: 0 5px; border-bottom: 4px solid #333; }
         .pointer { position: absolute; left: 50%; width: 2px; height: 100%; background: var(--main); z-index: 5; box-shadow: 0 0 15px var(--main); }
-        .btn { background: var(--main); border: none; padding: 15px 40px; font-weight: bold; cursor: pointer; border-radius: 4px; color: #000; }
-        .cases-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; padding: 40px; }
-        .case-card { background: var(--panel); padding: 20px; text-align: center; border-radius: 10px; cursor: pointer; border: 1px solid #222; transition: 0.3s; }
+        
+        .btn { background: var(--main); border: none; padding: 15px 40px; font-weight: bold; cursor: pointer; border-radius: 4px; color: #000; transition: 0.3s; }
+        .btn:hover { box-shadow: 0 0 20px var(--main); transform: scale(1.05); }
+        .btn:disabled { background: #555; cursor: not-allowed; }
+
+        .cases-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 40px; }
+        .case-card { background: var(--card); padding: 20px; text-align: center; border-radius: 10px; cursor: pointer; border: 1px solid #222; transition: 0.3s; position: relative; }
         .case-card:hover { border-color: var(--main); transform: translateY(-5px); }
+        .case-price { color: var(--main); font-weight: bold; margin-top: 10px; }
+
+        .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; padding: 40px; }
+        .inv-card { background: var(--card); padding: 10px; border-radius: 8px; border-bottom: 3px solid var(--main); text-align: center; }
         .rarity-gold { border-color: var(--gold) !important; }
-        .xp-bar { width: 100%; height: 5px; background: #222; margin-top: 10px; }
-        .xp-fill { height: 100%; background: var(--main); box-shadow: 0 0 10px var(--main); }
     </style>
 </head>
 <body>
     <div class="feed" id="liveFeed"><% drops.forEach(d => { %><div class="f-item"><img src="<%= d.img %>" width="100%"></div><% }) %></div>
     <header>
-        <div style="font-size:24px; font-weight:900; color:var(--main)">TOXIC BATTLE</div>
+        <div class="logo" onclick="location.reload()">TOXIC<span>BATTLE</span></div>
         <% if (user) { %>
             <div style="text-align:right">
-                <b><%= user.name %></b> | <span id="bal"><%= user.balance %></span>₽<br>
+                <b><%= user.name %></b> [LVL <%= user.lvl %>] | <span id="bal"><%= user.balance %></span>₽
                 <div class="xp-bar"><div class="xp-fill" id="xpF" style="width:<%= user.xp/10 %>%"></div></div>
             </div>
         <% } else { %>
-            <a href="/auth/steam"><button class="btn">ВОЙТИ</button></a>
+            <a href="/auth/steam" class="btn">ВОЙТИ ЧЕРЕЗ STEAM</a>
         <% } %>
     </header>
 
     <div class="roulette"><div class="pointer"></div><div id="tape" class="tape"></div></div>
-    <center><button class="btn" id="openBtn" onclick="openCase()" disabled>ВЫБЕРИТЕ КЕЙС</button></center>
+    <center><button class="btn" id="openBtn" onclick="openCase()" disabled>ВЫБЕРИТЕ КЕЙС НИЖЕ</button></center>
 
     <div class="cases-grid">
         <% for(let k in cases) { %>
             <div class="case-card" onclick="selCase('<%=k%>', <%=cases[k].price%>)">
-                <img src="<%=cases[k].img%>" width="120"><br><b><%=cases[k].name%></b><br><span style="color:var(--main)"><%=cases[k].price%>₽</span>
+                <img src="<%=cases[k].img%>" width="120">
+                <div style="margin-top:10px; font-weight:bold"><%=cases[k].name%></div>
+                <div class="case-price"><%=cases[k].price%> ₽</div>
             </div>
         <% } %>
     </div>
 
-    <div id="inv-grid" style="display:flex; flex-wrap:wrap; padding:40px; gap:10px"></div>
+    <h2 style="text-align:center; color:var(--main)">ВАШ ИНВЕНТАРЬ</h2>
+    <div class="inv-grid" id="inv">
+        <% if (user) { user.inventory.reverse().forEach(i => { %>
+            <div class="inv-card rarity-<%=i.rarity%>">
+                <img src="<%=i.img%>" width="80"><br><span style="font-size:10px"><%=i.name%></span><br>
+                <button onclick="sell('<%=i.iid%>')" style="margin-top:5px; font-size:9px; background:red; color:white; border:none; cursor:pointer; padding:3px 10px; border-radius:3px">ПРОДАТЬ</button>
+            </div>
+        <% })} %>
+    </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
-        let curCase = '', allCases = <%- JSON.stringify(cases) %>;
-        const tape = document.getElementById('tape'), tick = new Audio('https://raw.githubusercontent.com');
+        let cur = '', all = <%- JSON.stringify(cases) %>, tape = document.getElementById('tape'), tick = new Audio('https://raw.githubusercontent.com');
 
-        function selCase(id, price) {
-            curCase = id;
-            document.getElementById('openBtn').disabled = false;
-            document.getElementById('openBtn').innerText = 'ОТКРЫТЬ ЗА ' + price + '₽';
+        function selCase(id, p) {
+            cur = id; document.getElementById('openBtn').disabled = false;
+            document.getElementById('openBtn').innerText = 'ОТКРЫТЬ КЕЙС ЗА ' + p + '₽';
             tape.innerHTML = '';
             for(let i=0; i<100; i++) {
-                let it = allCases[id].items[Math.floor(Math.random()*allCases[id].items.length)];
-                tape.innerHTML += `<div class="item"><img src="${it.img}" width="100"></div>`;
+                let it = all[id].items[Math.floor(Math.random()*all[id].items.length)];
+                tape.innerHTML += `<div class="item rarity-${it.rarity}"><img src="${it.img}" width="100"></div>`;
             }
-            window.scrollTo({top:0, behavior:'smooth'});
+            window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
         async function openCase() {
-            const res = await fetch('/open/'+curCase, {method:'POST'});
-            const data = await res.json();
-            if(data.error) return alert(data.error);
+            const btn = document.getElementById('openBtn');
+            btn.disabled = true;
+            const res = await fetch('/open/'+cur, {method:'POST'});
+            const d = await res.json();
+            if(d.error) { btn.disabled = false; return alert(d.error); }
 
-            document.getElementById('bal').innerText = data.balance;
-            tape.children[80].innerHTML = `<img src="${data.win.img}" width="100">`;
-            tape.children[80].className = `item rarity-${data.win.rarity}`;
-            tape.style.transform = `translateX(-${(80*160) - (window.innerWidth/2) + 80}px)`;
+            document.getElementById('bal').innerText = d.balance;
+            document.getElementById('xpF').style.width = (d.xp / 10) + '%';
+            
+            const winIdx = 80;
+            tape.children[winIdx].innerHTML = `<img src="${d.win.img}" width="100">`;
+            tape.children[winIdx].className = `item rarity-${d.win.rarity}`;
+            
+            tape.style.transform = `translateX(-${(winIdx*160) - (window.innerWidth/2) + 80}px)`;
 
             let lastI = 0;
             const loop = () => {
                 let curI = Math.floor(Math.abs(new WebKitCSSMatrix(getComputedStyle(tape).transform).m41) / 160);
                 if(curI !== lastI) { tick.currentTime=0; tick.play(); lastI=curI; }
-                if(lastI < 80) requestAnimationFrame(loop);
+                if(lastI < winIdx) requestAnimationFrame(loop);
             };
             requestAnimationFrame(loop);
             setTimeout(() => location.reload(), 6000);
         }
 
-        socket.on('newDrop', d => {
-            const f = document.getElementById('liveFeed');
-            f.innerHTML = `<div class="f-item"><img src="${d.img}" width="100%"></div>` + f.innerHTML;
-        });
+        async function sell(iid) {
+            await fetch('/sell', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({iid})});
+            location.reload();
+        }
     </script>
 </body>
 </html>
