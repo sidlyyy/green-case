@@ -2,79 +2,75 @@
 <html>
 <head>
     <meta name="referrer" content="no-referrer">
-    <title>TOXIC BATTLE | CASE-BATTLE CLONE</title>
+    <title>TOXIC BATTLE | Case-Battle Clone</title>
     <style>
         :root { --main: #2ecc71; --dark: #0b0e0f; --card: #141a1c; --gold: #caab05; }
         body { background: var(--dark); color: white; font-family: sans-serif; margin: 0; }
-        header { background: var(--card); padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--main); }
-        .nav-kb { display: flex; justify-content: center; gap: 30px; background: #0a0c0d; padding: 15px; border-bottom: 1px solid #222; }
-        .nav-kb a { color: #888; text-decoration: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .nav-kb a.active { color: var(--main); text-shadow: 0 0 10px var(--main); border-bottom: 2px solid var(--main); }
-        
+        header { background: var(--card); padding: 15px 50px; display: flex; justify-content: space-between; border-bottom: 2px solid var(--main); }
+        .nav-kb { display: flex; justify-content: center; gap: 20px; background: #0a0c0d; padding: 10px; }
+        .nav-kb a { color: #888; text-decoration: none; font-weight: bold; cursor: pointer; padding: 5px 15px; border-radius: 5px; }
+        .nav-kb a.active { background: var(--main); color: #000; }
         .section { display: none; padding: 20px; }
         .section.active { display: block; }
-        
         .roulette { width: 100%; height: 160px; background: #0e1213; overflow: hidden; position: relative; margin: 20px 0; }
         .tape { display: flex; transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1); }
         .item { min-width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; background: var(--card); margin: 0 5px; border-bottom: 4px solid #333; }
         .pointer { position: absolute; left: 50%; width: 2px; height: 100%; background: var(--main); z-index: 5; box-shadow: 0 0 15px var(--main); }
-
         .btn { background: var(--main); border: none; padding: 15px 40px; font-weight: bold; cursor: pointer; border-radius: 4px; color: #000; }
-        .cases-grid, .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; padding: 20px; }
-        .case-card, .inv-card { background: var(--card); padding: 20px; text-align: center; border-radius: 10px; border: 1px solid #222; }
-        .rarity-gold { border-color: var(--gold) !important; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 20px; }
+        .card { background: var(--card); padding: 15px; border-radius: 10px; border: 1px solid #222; text-align: center; cursor: pointer; }
+        .card:hover { border-color: var(--main); }
+        .circle-box { display: flex; align-items: center; justify-content: center; gap: 50px; padding: 50px; }
+        .circle { width: 200px; height: 200px; border-radius: 50%; border: 10px solid #222; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 900; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-size:24px; font-weight:900; color:var(--main)">TOXIC<span>BATTLE</span></div>
-    <% if (user) { %>
-        <div><b><%= user.name %></b> | <span id="bal"><%= user.balance %></span>₽</div>
-    <% } else { %>
-        <a href="/auth/steam" class="btn">ВОЙТИ</a>
-    <% } %>
+    <div style="font-size:24px; font-weight:900; color:var(--main)">TOXIC BATTLE</div>
+    <% if (user) { %> <div><b><%= user.name %></b> | <span id="bal"><%= user.balance %></span>₽</div> <% } else { %> <a href="/auth/steam" class="btn">ВОЙТИ</a> <% } %>
 </header>
 
 <nav class="nav-kb">
-    <a onclick="tab('home')" id="t-home" class="active">КЕЙСЫ</a>
+    <a onclick="tab('cases')" id="t-cases" class="active">КЕЙСЫ</a>
     <a onclick="tab('profile')" id="t-profile">ПРОФИЛЬ</a>
     <a onclick="tab('upgrade')" id="t-upgrade">АПГРЕЙДЫ</a>
 </nav>
 
-<!-- ВКЛАДКА КЕЙСЫ -->
-<div id="home" class="section active">
+<div id="cases" class="section active">
     <div class="roulette"><div class="pointer"></div><div id="tape" class="tape"></div></div>
     <center><button class="btn" id="openBtn" onclick="openCase()" disabled>ВЫБЕРИТЕ КЕЙС</button></center>
-    <div class="cases-grid">
+    <div class="grid">
         <% for(let k in cases) { %>
-            <div class="case-card" onclick="selCase('<%=k%>', <%=cases[k].price%>)">
+            <div class="card" onclick="selCase('<%=k%>', <%=cases[k].price%>)">
                 <img src="<%=cases[k].img%>" width="120"><br><b><%=cases[k].name%></b><br><span style="color:var(--main)"><%=cases[k].price%>₽</span>
             </div>
         <% } %>
     </div>
 </div>
 
-<!-- ВКЛАДКА ПРОФИЛЬ -->
 <div id="profile" class="section">
-    <h2 style="color:var(--main)">ВАШ ИНВЕНТАРЬ</h2>
-    <div class="inv-grid">
-        <% if (user && user.inventory) { user.inventory.reverse().forEach(i => { %>
-            <div class="inv-card">
-                <img src="<%=i.img%>" width="100"><br><span><%=i.name%></span><br>
-                <button onclick="sell('<%=i.iid%>')" style="background:red; color:white; border:none; padding:5px; cursor:pointer">ПРОДАТЬ</button>
-            </div>
+    <h2 style="color:var(--main); text-align:center">ИНВЕНТАРЬ</h2>
+    <div class="grid" id="inv">
+        <% if (user) { user.inventory.reverse().forEach(i => { %>
+            <div class="card"><img src="<%=i.img%>" width="100"><br><%=i.name%><br><b><%=i.price%>₽</b><br>
+            <button onclick="sell('<%=i.iid%>')" style="background:red; color:white; border:none; padding:5px; cursor:pointer">ПРОДАТЬ</button></div>
         <% })} %>
     </div>
 </div>
 
-<!-- ВКЛАДКА АПГРЕЙДЫ -->
 <div id="upgrade" class="section">
-    <center><h2>АПГРЕЙДЫ В РАЗРАБОТКЕ</h2></center>
+    <div class="circle-box">
+        <div id="u-my">Свой предмет</div>
+        <div class="circle" id="u-chance">0%</div>
+        <div id="u-target">Цель</div>
+    </div>
+    <div class="grid"> <% shop.forEach(i => { %> <div class="card" onclick="setUTarget('<%=i.id%>','<%=i.price%>','<%=i.img%>')"><img src="<%=i.img%>" width="80"><br><%=i.price%>₽</div> <% }) %> </div>
+    <center><button class="btn" onclick="doU()">УЛУЧШИТЬ</button></center>
 </div>
 
 <script>
-    let cur = '', all = <%- JSON.stringify(cases) %>, tape = document.getElementById('tape');
+    let curC = '', allC = <%- JSON.stringify(cases) %>, tape = document.getElementById('tape'), uMyIid = null, uMyP = 0, uTarId = null, uTarP = 0;
 
     function tab(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -84,18 +80,18 @@
     }
 
     function selCase(id, p) {
-        cur = id; document.getElementById('openBtn').disabled = false;
+        curC = id; document.getElementById('openBtn').disabled = false;
         document.getElementById('openBtn').innerText = 'ОТКРЫТЬ ЗА ' + p + '₽';
         tape.innerHTML = '';
         for(let i=0; i<100; i++) {
-            let it = all[id].items[Math.floor(Math.random()*all[id].items.length)];
+            let it = allC[id].items[Math.floor(Math.random()*allC[id].items.length)];
             tape.innerHTML += `<div class="item"><img src="${it.img}" width="100"></div>`;
         }
-        tab('home'); window.scrollTo({top: 0, behavior: 'smooth'});
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     async function openCase() {
-        const res = await fetch('/api/open/'+cur, {method:'POST'});
+        const res = await fetch('/api/open/'+curC, {method:'POST'});
         const d = await res.json();
         if(d.error) return alert(d.error);
         document.getElementById('bal').innerText = d.balance;
@@ -108,6 +104,18 @@
         await fetch('/api/sell', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({iid})});
         location.reload();
     }
+
+    function setUTarget(id, p, img) {
+        uTarId = id; uTarP = p;
+        document.getElementById('u-target').innerHTML = `<img src="${img}" width="100"><br>${p}₽`;
+        if(uMyP) { 
+            let c = Math.min((uMyP/uTarP)*100, 95).toFixed(1);
+            document.getElementById('u-chance').innerText = c + '%';
+            document.getElementById('u-chance').style.borderColor = 'var(--main)';
+        }
+    }
+    // Чтобы выбрать свой предмет для апгрейда, кликни по нему в инвентаре (в профиле)
+    // В полной версии мы бы добавили выбор прямо в меню апгрейда.
 </script>
 </body>
 </html>
