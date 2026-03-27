@@ -14,7 +14,7 @@ app.use(passport.session());
 const STEAM_API_KEY = '123456789DFGQWERTYUIOPASDFGHJKLZX'; 
 
 // ВНИМАНИЕ: Замени адрес ниже на ссылку от Render после деплоя!
-const DOMAIN = 'http://localhost:3000'; 
+const DOMAIN = 'https://green-case.onrender.com'; 
 
 let users = {};
 let liveDrops = [];
